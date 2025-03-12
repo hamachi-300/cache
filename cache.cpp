@@ -177,12 +177,138 @@ void start_direct_map(){
     direct_map(cache_size, address_bits);
 }
 
+void print_set_associative(vector<string> index_column, vector<string> valid_column, vector< vector<string> > tag_column, vector< vector<string> > data_column, int cache_size) {
+    string size = "";
+    cout << tag_column[0][0].size();
+    for (int i = 0; i < tag_column.size(); i++){
+        size += tag_column[0][0];
+    }
+    for (int i = 0; i < data_column.size(); i++){
+        size += data_column[0][0];
+    }
+    size += " | " + index_column[0] + " | " + valid_column[0] + " | " + " | " + " | ";
+    for (int i = 0; i < size.size(); i++) {
+        cout << "-";
+    }
+    cout << endl;
+
+    // int is = 0, vs = 0, ts = 0, ds = 0;
+    // if (index_column[0].size() > 3){
+    //     is = index_column[0].size() - 3;
+    // }
+    // if (valid_column[0].size() > 1){
+    //     vs = valid_column[0].size() - 1;
+    // }
+    // if (tag_column[0][0].size() > 3 + 1 + to_string(tag_column[0].size()).size()){
+    //     ts = tag_column[0][0].size() - 3 - 1 - to_string(tag_column[0].size()).size();
+    // }
+    // if (data_column[0][0].size() > 4 + 1 + to_string(data_column[0].size()).size()){
+    //     ds = data_column[0][0].size() - 4 - 1 - to_string(data_column[0].size()).size();
+    // }
+
+    // string iss = "", vss = "", tss = "", dss = "";
+    // for (int i = 0; i < is; i++){
+    //     iss += " ";
+    // }
+    // for (int i = 0; i < vs; i++){
+    //     vss += " ";
+    // }
+    // for (int i = 0; i < ts; i++){
+    //     tss += " ";
+    // }
+    // for (int i = 0; i < ds; i++){
+    //     dss += " ";
+    // }
+
+    // string column = " | idx" + iss + " | V" + vss + " | ";
+
+    // for (int i = 0; i < tag_column.size(); i++){
+    //     column += "tag " + to_string(i) + tss + " | ";
+    // }
+
+    // for (int i = 0; i < tag_column.size(); i++){
+    //     column += "data " + to_string(i) + dss + " | ";
+    // }
+
+    // cout << " | idx" << iss << " | V" << vss << " | tag" << tss << " | data" << dss << " |" << endl;
+
+    // for (int i = 0; i < size.size(); i++) {
+    //     cout << "-";
+    // }
+
+    // cout << endl;
+    // for (int i = 0; i < cache_size; i++){
+    //     cout << " | " + index_column[i] + " | " + valid_column[i];
+    //     for (int j = 0; j < tag_column.size(); j++){
+    //         cout << " | " << tag_column[i][j];
+    //     }
+    
+    //     for (int j = 0; j < data_column.size(); j++){
+    //         cout << " | " << data_column[i][j];
+    //     }
+    // }
+    // for (int i = 0; i < size.size(); i++) {
+    //     cout << "-";
+    // }
+    // cout << endl;
+}
+
+void set_associative(int cache_size, int address_bits, int way){
+    int hit = 0, count = 0;
+
+    // caculate cache_size
+    int way_cache_size = cache_size/way;
+
+    // log base 2 of cache_size = bits of indexs
+    int cache_index_bits = ceil(log(way_cache_size) / log(2));
+
+    // create index column
+    vector<string> index_column;
+    for (int i = 0; i < cache_size; i++){
+        bitset<32> bits(i);
+        index_column.push_back(bits.to_string().substr(32-cache_index_bits));
+    }
+
+    // create valid bit column
+    vector<string> valid_column;
+    for (int i = 0; i < cache_size; i++){
+        valid_column.push_back("0");
+    }
+
+    // create tag column
+    vector< vector<string> > tag_column(cache_size);
+    for (int i = 0; i < cache_size; i++){
+        for (int j = 0; j < way; j++){
+            string space = "";
+            for (int i = 0; i < (address_bits - cache_index_bits)/2; i++){
+                space += " ";
+            }
+            tag_column[i].push_back(space);
+        }
+    }
+
+    // create data column
+    vector< vector<string> > data_column(cache_size);
+    for (int i = 0; i < cache_size; i++){
+        for (int j = 0; j < way; j++){
+            string space = "";
+            for (int i = 0; i < address_bits; i++){
+                space += " ";
+            }
+            space += "        ";
+            data_column[i].push_back(space);
+        }
+    }
+    print_set_associative(index_column, valid_column, tag_column, data_column, cache_size);
+}
+
 void start_set_associative(){
+    // choose way associative ()
     int way = 2;
 
     // input size of cache (16 bit is in range 0 - 65535)
     try_again:
-    cout << "Input cache block size (0 - 65535) : ";
+    cout << "Input cache block size (" << way << " - 65535) : ";
     int cache_size;
     cin >> cache_size;
 
@@ -192,18 +318,17 @@ void start_set_associative(){
     int address_bits;
     cin >> address_bits;
 
-    if (cache_size > 65535 || cache_bits > 16 || cache_bits < ceil(log(cache_size) / log(2))){
+    if (cache_size > 65535 || cache_bits > 16 || cache_bits < ceil(log(cache_size) / log(2)) || way < 2){
         cout << "Your input is invalid try again!!" << endl << endl;
         goto try_again;
     }
 
-    direct_map(cache_size, address_bits);
-
+    set_associative(cache_size, address_bits, way);
 }
 
 int main(){
     
-    start_direct_map();
+    start_set_associative();
 
     return 0;
 }
