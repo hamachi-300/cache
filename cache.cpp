@@ -365,7 +365,7 @@ void set_associative(int cache_size, int address_bits, int way){
              << "Binary address of reference                  : " << input_bit << endl << endl
              << "Hit or miss in cache                         : " << isHit << endl << endl
              << "Assigned cache block (where found or placed) : " << input_bit << " mod " << cache_size << " = " << index_bits << endl << endl
-             << "Assigned tag                                 : " << tag_bits << endl << endl;
+             << "Assigned set                                 : " << tag_bits << endl << endl;
     }
     // caculate hit rate
     double hit_rate =( hit*1.) / (count*1.);
@@ -433,7 +433,7 @@ int main(){
          << "==============================" << endl
          << "1) Direct Mapping             " << endl
          << "2) N-Way Set Associative      " << endl
-         << "1) Fully Way Associative      " << endl
+         << "3) Fully Way Associative      " << endl
          << "Choose : ";
 
     int input;
