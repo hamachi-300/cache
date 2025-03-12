@@ -172,7 +172,7 @@ void start_direct_map(){
     int address_bits;
     cin >> address_bits;
 
-    if (cache_size > 65535 || cache_bits > 16 || cache_bits < ceil(log(cache_size) / log(2))){
+    if (cache_size > 65535 || cache_bits > 16 || cache_bits < ceil(log(cache_size) / log(2)) || address_bits > 16 ){
         cout << "Your input is invalid try again!!" << endl << endl;
         goto try_again;
     }
@@ -339,9 +339,9 @@ void set_associative(int cache_size, int address_bits, int way){
 
             // if it is last and can't hit 
             if (i == tag_column[0].size()-1){
-                for (int in = 0; in < tag_column.size(); in++){
+                for (int in = 0; in < tag_column.size(); in++){ 
                     for (int jn = 0 ; jn < tag_column[0].size(); jn++) {
-                        if (tag_column[in][jn] == space || jn == tag_column[0].size()-1) {
+                        if (tag_column[(input % cache_size)][jn] == space || jn == tag_column[0].size()-1) {
                             // set valid bit 1
                             valid_column[(input % cache_size)] = "1";
                 
@@ -391,7 +391,7 @@ void start_set_associative(){
     int address_bits;
     cin >> address_bits;
 
-    if (cache_size > 65535 || cache_bits > 16 || cache_bits < ceil(log(cache_size) / log(2)) || way < 1){
+    if (cache_size > 65535 || cache_bits > 16 || cache_bits < ceil(log(cache_size) / log(2)) || way < 1 || address_bits > 16 || cache_size > 65535){
         cout << "Your input is invalid try again!!" << endl << endl;
         goto try_again;
     }
@@ -422,7 +422,6 @@ void start_fully_associative(){
 
     set_associative(cache_size, address_bits, way);
 }
-
 
 int main(){
 
