@@ -180,11 +180,11 @@ void start_direct_map(){
     direct_map(cache_size, address_bits);
 }
 
-void print_set_associative(vector<string> index_column, vector<string> valid_column, vector< vector<string> > tag_column, vector< vector<string> > data_column, int cache_size) {
+void print_set_associative(vector<string> set_column, vector<string> valid_column, vector< vector<string> > tag_column, vector< vector<string> > data_column, int cache_size) {
     
     int is = 0, vs = 0, ts = 0, ds = 0;
-    if (index_column[0].size() > 3){
-        is = index_column[0].size() - 3;
+    if (set_column[0].size() > 3){
+        is = set_column[0].size() - 3;
     }
     if (valid_column[0].size() > 1){
         vs = valid_column[0].size() - 1;
@@ -212,9 +212,12 @@ void print_set_associative(vector<string> index_column, vector<string> valid_col
 
     string column_title = "";
 
-    column_title += " | idx" + iss + " | " + "V" + vss + " | ";
+    if (set_column[0].size() != 0) {
+        column_title += " | set" + iss;
+    }
+    column_title += " | V" + vss + " | ";
     for (int i = 0; i < tag_column[0].size(); i++){
-        column_title += "set " + to_string(i) + tss + " | data " + to_string(i) + dss + " | ";
+        column_title += "tag " + to_string(i) + tss + " | data " + to_string(i) + dss + " | ";
     }
 
     for (int i = 0; i < column_title.size(); i++){
@@ -229,8 +232,11 @@ void print_set_associative(vector<string> index_column, vector<string> valid_col
     }
     cout << endl;
 
-    for (int i = 0; i < index_column.size(); i++){
-        cout << " | " << index_column[i] << " | " << valid_column[i];
+    for (int i = 0; i < set_column.size(); i++){
+        if (set_column[0].size() != 0) {
+            cout << " | " << set_column[i];
+        }
+        cout << " | " << valid_column[i];
         for (int j = 0; j < tag_column[i].size(); j++){
             cout << " | " << tag_column[i][j];
             cout << " | " << data_column[i][j];
@@ -251,14 +257,14 @@ void set_associative(int cache_size, int address_bits, int way){
     // caculate cache_size
     cache_size = ceil(cache_size/(way*1.0));
 
-    // log base 2 of cache_size = bits of indexs
-    int cache_index_bits = ceil(log(cache_size) / log(2));
+    // log base 2 of cache_size = bits of sets
+    int cache_set_bits = ceil(log(cache_size) / log(2));
 
-    // create index column
-    vector<string> index_column;
+    // create set column
+    vector<string> set_column;
     for (int i = 0; i < cache_size; i++){
         bitset<32> bits(i);
-        index_column.push_back(bits.to_string().substr(32-cache_index_bits));
+        set_column.push_back(bits.to_string().substr(32-cache_set_bits));
     }
 
     // create valid bit column
@@ -269,7 +275,7 @@ void set_associative(int cache_size, int address_bits, int way){
 
     // create tag column
     string space = "";
-    for (int i = 0; i < address_bits - cache_index_bits; i++){
+    for (int i = 0; i < address_bits - cache_set_bits; i++){
         space += " ";
     }
     vector< vector<string> > tag_column(cache_size);
@@ -292,7 +298,7 @@ void set_associative(int cache_size, int address_bits, int way){
         }
     }
 
-    print_set_associative(index_column, valid_column, tag_column, data_column, cache_size);
+    print_set_associative(set_column, valid_column, tag_column, data_column, cache_size);
 
     cout << "Enter -1 to exit.." << endl;
     while (true) {
@@ -320,10 +326,10 @@ void set_associative(int cache_size, int address_bits, int way){
         string input_bit = bits.to_string().substr(32-address_bits);
         cout << input << " --> " << input_bit << endl;
 
-        string index_bits = bits.to_string().substr(32-cache_index_bits);
-        string tag_bits = bits.to_string().substr(32-address_bits, address_bits-cache_index_bits);
+        string set_bits = bits.to_string().substr(32-cache_set_bits);
+        string tag_bits = bits.to_string().substr(32-address_bits, address_bits-cache_set_bits);
 
-        cout << "index : " << index_bits << endl
+        cout << "set : " << set_bits << endl
              << "tag : " << tag_bits << endl;
 
         // check hit
@@ -342,13 +348,13 @@ void set_associative(int cache_size, int address_bits, int way){
                 for (int in = 0; in < tag_column.size(); in++){ 
                     for (int jn = 0 ; jn < tag_column[0].size(); jn++) {
                         if (tag_column[(input % cache_size)][jn] == space || jn == tag_column[0].size()-1) {
-                            // set valid bit 1
+                            // tag valid bit 1
                             valid_column[(input % cache_size)] = "1";
                 
-                            // set tag column
+                            // tag tag column
                             tag_column[(input % cache_size)][jn] = tag_bits;
                 
-                            // set data column
+                            // tag data column
                             data_column[(input % cache_size)][jn] = "Memory(" + input_bit + ")";
                             goto next;
                         }
@@ -358,14 +364,17 @@ void set_associative(int cache_size, int address_bits, int way){
         }
         next:
 
-        print_set_associative(index_column, valid_column, tag_column, data_column, cache_size);
+        print_set_associative(set_column, valid_column, tag_column, data_column, cache_size);
         cout << endl;
         // output result
         cout << "Decimal address of reference                 : " << input << endl << endl
              << "Binary address of reference                  : " << input_bit << endl << endl
              << "Hit or miss in cache                         : " << isHit << endl << endl
-             << "Assigned cache block (where found or placed) : " << input_bit << " mod " << cache_size << " = " << index_bits << endl << endl
-             << "Assigned set                                 : " << tag_bits << endl << endl;
+             << "Assigned tag                                 : " << tag_bits << endl << endl;
+
+        if (set_column[0].size() != 0) {
+            cout << "Assigned cache block (where found or placed) : " << input_bit << " mod " << cache_size << " = " << set_bits << endl << endl;
+        }
     }
     // caculate hit rate
     double hit_rate =( hit*1.) / (count*1.);
