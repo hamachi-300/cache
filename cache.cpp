@@ -339,6 +339,19 @@ void set_associative(int cache_size, int address_bits, int way){
             if (valid_column[(input % cache_size)] == "1" && tag_column[(input % cache_size)][i] == tag_bits){
                 isHit = "hit";
                 hit++;
+
+                // LRU (Least Recently Used) implement
+                string tempTag = tag_column[(input % cache_size)][i];
+                string tempData = data_column[(input % cache_size)][i];
+
+                // remove current tag and data 
+                tag_column[(input % cache_size)].erase(tag_column[(input % cache_size)].begin() + i);
+                data_column[(input % cache_size)].erase(data_column[(input % cache_size)].begin() + i);
+
+                // insert tag and data at first
+                tag_column[(input % cache_size)].insert(tag_column[(input % cache_size)].begin(), tempTag);
+                data_column[(input % cache_size)].insert(data_column[(input % cache_size)].begin(), tempData);
+
                 break;
             } 
 
@@ -347,6 +360,7 @@ void set_associative(int cache_size, int address_bits, int way){
             if (i == tag_column[0].size()-1){
                 for (int in = 0; in < tag_column.size(); in++){ 
                     for (int jn = 0 ; jn < tag_column[0].size(); jn++) {
+                        // it will replace at block that empty or last one
                         if (tag_column[(input % cache_size)][jn] == space || jn == tag_column[0].size()-1) {
                             // tag valid bit 1
                             valid_column[(input % cache_size)] = "1";
@@ -379,6 +393,7 @@ void set_associative(int cache_size, int address_bits, int way){
     // caculate hit rate
     double hit_rate =( hit*1.) / (count*1.);
     cout << endl << "Hit rate : " << hit_rate * 100 << "%" << endl;
+
 }
 
 void start_set_associative(){
@@ -442,6 +457,7 @@ int main(){
          << "1) Direct Mapping             " << endl
          << "2) N-Way Set Associative      " << endl
          << "3) Fully Way Associative      " << endl
+         << "4) Exit                       " << endl
          << "Choose : ";
 
     int input;
@@ -464,10 +480,17 @@ int main(){
         case (3):
             start_fully_associative();
             break;
+        case (4):
+            cout << "Exiting...";
+            goto end;
+            break;
         default:
             cout << "Invalid Input!!" << endl << endl;
             goto start;
     }
+    goto start;
+
+    end:
 
     return 0;
 }
