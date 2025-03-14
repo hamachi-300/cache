@@ -129,9 +129,9 @@ void direct_map(int cache_size, int address_bits) {
              << "tag : " << tag_bits << endl;
 
         // check hit
-        string isHit = "miss";
+        string is_hit = "miss";
         if (valid_column[(input % cache_size)] == "1" && tag_column[(input % cache_size)] == tag_bits){
-            isHit = "hit";
+            is_hit = "hit";
             hit++;
         } else {
             // set valid bit 1
@@ -149,7 +149,7 @@ void direct_map(int cache_size, int address_bits) {
         // output result
         cout << "Decimal address of reference                 : " << input << endl << endl
              << "Binary address of reference                  : " << input_bit << endl << endl
-             << "Hit or miss in cache                         : " << isHit << endl << endl
+             << "Hit or miss in cache                         : " << is_hit << endl << endl
              << "Assigned cache block (where found or placed) : " << input_bit << " mod " << cache_size << " = " << index_bits << endl << endl
              << "Assigned tag                                 : " << tag_bits << endl << endl;
     }
@@ -333,11 +333,11 @@ void set_associative(int cache_size, int address_bits, int way){
              << "tag : " << tag_bits << endl;
 
         // check hit
-        string isHit = "miss";
+        string is_hit = "miss";
 
         for (int i = 0 ; i < tag_column[0].size(); i++) {
             if (valid_column[(input % cache_size)] == "1" && tag_column[(input % cache_size)][i] == tag_bits){
-                isHit = "hit";
+                is_hit = "hit";
                 hit++;
 
                 // LRU (Least Recently Used) implement
@@ -383,7 +383,7 @@ void set_associative(int cache_size, int address_bits, int way){
         // output result
         cout << "Decimal address of reference                 : " << input << endl << endl
              << "Binary address of reference                  : " << input_bit << endl << endl
-             << "Hit or miss in cache                         : " << isHit << endl << endl
+             << "Hit or miss in cache                         : " << is_hit << endl << endl
              << "Assigned tag                                 : " << tag_bits << endl << endl;
 
         if (set_column[0].size() != 0) {
