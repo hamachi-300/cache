@@ -10,6 +10,7 @@ cache memory simulation. computer architecture project
 # contents of proxy_caching
   - Proxy Caching : it will store recently or frequency used data make you device faster fetch data from web server
   - Caching Algorithms (LRU, LFU) implementation
+  - TTL (Time To Live)
 
 
 # Optional Enhancements
