@@ -197,6 +197,20 @@ void set_associative(int cache_size, int address_bits, int way){
                 
                             // tag data column
                             data_column[(input % cache_size)][jn] = "Memory(" + input_bit + ")";
+
+                            // move first (LRU)
+                            // LRU (Least Recently Used) implement
+                            string tempTag = tag_column[(input % cache_size)][jn];
+                            string tempData = data_column[(input % cache_size)][jn];
+
+                            // remove current tag and data 
+                            tag_column[(input % cache_size)].erase(tag_column[(input % cache_size)].begin() + jn);
+                            data_column[(input % cache_size)].erase(data_column[(input % cache_size)].begin() + jn);
+
+                            // insert tag and data at first
+                            tag_column[(input % cache_size)].insert(tag_column[(input % cache_size)].begin(), tempTag);
+                            data_column[(input % cache_size)].insert(data_column[(input % cache_size)].begin(), tempData);
+                            
                             goto next;
                         }
                     }
