@@ -6,14 +6,23 @@ import requests # type: ignore
 app = Flask(__name__)
 
 # cache memory for store web content
-cache = LFU(5)
+algorithm = input("Enter caching algorithm      "
+                "\n============================="
+                "\n1) LRU (Least Recently Used) "
+                "\n2) LFU (Least Frequency Used)"
+                "\nEnter algorithm number : ")
+size = int(input("\nEnter cache size : "))
+
+if (algorithm == "1"):
+    cache = LRU(size)
+else: 
+    cache = LFU(size)
 
 # create route for proxy
 @app.route('/proxy', methods=['GET'])
 def proxy():
     # get url from server
     url = request.args.get("url")
-    print(cache.getKeys())
     
     # check url is in cache memory
     cached_data = cache.get(url)
