@@ -58,6 +58,7 @@ void print_direct_map(vector<string> index_column, vector<string> valid_column, 
 }
 
 void direct_map(int cache_size, int address_bits) {
+
     int hit = 0, count = 0;
 
     // log base 2 of cache_size = bits of indexs
@@ -80,7 +81,7 @@ void direct_map(int cache_size, int address_bits) {
     vector<string> tag_column;
     for (int i = 0; i < cache_size; i++){
         string space = "";
-        for (int j = 0; j < address_bits - cache_index_bits; j++){ // Fixed: used j instead of i
+        for (int i = 0; i < address_bits - cache_index_bits; i++){
             space += " ";
         }
         tag_column.push_back(space);
@@ -90,7 +91,7 @@ void direct_map(int cache_size, int address_bits) {
     vector<string> data_column;
     for (int i = 0; i < cache_size; i++){
         string space = "";
-        for (int j = 0; j < address_bits; j++){ // Fixed: used j instead of i
+        for (int i = 0; i < address_bits; i++){
             space += " ";
         }
         space += "        ";
@@ -155,40 +156,28 @@ void direct_map(int cache_size, int address_bits) {
              << "Assigned cache block (where found or placed) : " << input_bit << " mod " << cache_size << " = " << index_bits << endl << endl
              << "Assigned tag                                 : " << tag_bits << endl << endl;
     }
-    // calculate hit rate
-    double hit_rate = (count > 0) ? (hit * 100.0) / count : 0; // Fixed: handle divide by zero
-    cout << endl << "Hit rate : " << hit_rate << "%" << endl;
+    // caculate hit rate
+    double hit_rate =( hit*1.) / (count*1.);
+    cout << endl << "Hit rate : " << hit_rate * 100 << "%" << endl;
 }
 
 void start_direct_map(){
     cout << "===== Direct Mapping =====" << endl << endl;
     // input size of cache (16 bit is in range 0 - 65535)
-    int cache_size;
-    int address_bits;
-    
     try_again:
-    cout << "Input cache block size (1 - 65535) : "; // Fixed: minimum 1 instead of 0
+    cout << "Input cache block size (0 - 65535) : ";
+    int cache_size;
     cin >> cache_size;
 
-    if (cin.fail() || cache_size < 1 || cache_size > 65535) { // Fixed: added input validation
-        cin.clear();
-        cin.ignore(10000, '\n');
-        cout << "Your input is invalid try again!!" << endl << endl;
-        goto try_again;
-    }
-
     // input bits of address (range log2(cache_size) - 16)
-    int cache_bits = ceil(log2(cache_size)); // Fixed: using log2 directly
-    
-    address_input:
+    int cache_bits = ceil(log(cache_size) / log(2));
     cout << "Input bit of address (" << cache_bits << " - 16) : ";
+    int address_bits;
     cin >> address_bits;
 
-    if (cin.fail() || address_bits < cache_bits || address_bits > 16) { // Fixed: input validation
-        cin.clear();
-        cin.ignore(10000, '\n');
+    if (cache_size > 65535 || cache_bits > 16 || cache_bits < ceil(log(cache_size) / log(2)) || address_bits > 16 ){
         cout << "Your input is invalid try again!!" << endl << endl;
-        goto address_input;
+        goto try_again;
     }
 
     direct_map(cache_size, address_bits);

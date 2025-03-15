@@ -81,12 +81,11 @@ void print_set_associative(vector<string> set_column, vector<string> valid_colum
 void set_associative(int cache_size, int address_bits, int way){
     int hit = 0, count = 0;
 
-    // calculate cache_size
-    int original_cache_size = cache_size; // Save original size
+    // caculate cache_size
     cache_size = ceil(cache_size/(way*1.0));
 
     // log base 2 of cache_size = bits of sets
-    int cache_set_bits = ceil(log2(cache_size)); // Fixed: using log2 directly
+    int cache_set_bits = ceil(log(cache_size) / log(2));
 
     // create set column
     vector<string> set_column;
@@ -118,7 +117,7 @@ void set_associative(int cache_size, int address_bits, int way){
     for (int i = 0; i < cache_size; i++){
         for (int j = 0; j < way; j++){
             string space = "";
-            for (int k = 0; k < address_bits; k++){ // Fixed: used k instead of i
+            for (int i = 0; i < address_bits; i++){
                 space += " ";
             }
             space += "        ";
@@ -154,8 +153,6 @@ void set_associative(int cache_size, int address_bits, int way){
         string input_bit = bits.to_string().substr(32-address_bits);
         cout << input << " --> " << input_bit << endl;
 
-        // Fixed: Correctly calculate set index
-        int set_index = input % cache_size;
         string set_bits = bits.to_string().substr(32-cache_set_bits);
         string tag_bits = bits.to_string().substr(32-address_bits, address_bits-cache_set_bits);
 
@@ -166,59 +163,47 @@ void set_associative(int cache_size, int address_bits, int way){
         string is_hit = "miss";
 
         for (int i = 0 ; i < tag_column[0].size(); i++) {
-            if (valid_column[set_index] == "1" && tag_column[set_index][i] == tag_bits){
+            if (valid_column[(input % cache_size)] == "1" && tag_column[(input % cache_size)][i] == tag_bits){
                 is_hit = "hit";
                 hit++;
 
                 // LRU (Least Recently Used) implement
-                string tempTag = tag_column[set_index][i];
-                string tempData = data_column[set_index][i];
+                string tempTag = tag_column[(input % cache_size)][i];
+                string tempData = data_column[(input % cache_size)][i];
 
                 // remove current tag and data 
-                tag_column[set_index].erase(tag_column[set_index].begin() + i);
-                data_column[set_index].erase(data_column[set_index].begin() + i);
+                tag_column[(input % cache_size)].erase(tag_column[(input % cache_size)].begin() + i);
+                data_column[(input % cache_size)].erase(data_column[(input % cache_size)].begin() + i);
 
                 // insert tag and data at first
-                tag_column[set_index].insert(tag_column[set_index].begin(), tempTag);
-                data_column[set_index].insert(data_column[set_index].begin(), tempData);
+                tag_column[(input % cache_size)].insert(tag_column[(input % cache_size)].begin(), tempTag);
+                data_column[(input % cache_size)].insert(data_column[(input % cache_size)].begin(), tempData);
 
                 break;
             } 
 
+
             // if it is last and can't hit 
             if (i == tag_column[0].size()-1){
-                // Fixed: simplified miss handling logic
-                bool found_empty = false;
+                for (int in = 0; in < tag_column.size(); in++){ 
+                    for (int jn = 0 ; jn < tag_column[0].size(); jn++) {
+                        // it will replace at block that empty or last one
+                        if (tag_column[(input % cache_size)][jn] == space || jn == tag_column[0].size()-1) {
+                            // tag valid bit 1
+                            valid_column[(input % cache_size)] = "1";
                 
-                // First look for empty slots
-                for (int j = 0; j < tag_column[set_index].size(); j++) {
-                    if (tag_column[set_index][j] == space) {
-                        // Set valid bit to 1
-                        valid_column[set_index] = "1";
-                        
-                        // Set tag and data
-                        tag_column[set_index][j] = tag_bits;
-                        data_column[set_index][j] = "Memory(" + input_bit + ")";
-                        
-                        found_empty = true;
-                        break;
+                            // tag tag column
+                            tag_column[(input % cache_size)][jn] = tag_bits;
+                
+                            // tag data column
+                            data_column[(input % cache_size)][jn] = "Memory(" + input_bit + ")";
+                            goto next;
+                        }
                     }
                 }
-                
-                // If no empty slot found, replace the last one (LRU)
-                if (!found_empty) {
-                    int last_idx = tag_column[set_index].size() - 1;
-                    
-                    // Set valid bit to 1
-                    valid_column[set_index] = "1";
-                    
-                    // Set tag and data
-                    tag_column[set_index][last_idx] = tag_bits;
-                    data_column[set_index][last_idx] = "Memory(" + input_bit + ")";
-                }
-                break; // Fixed: added break to exit the loop
             }
         }
+        next:
 
         print_set_associative(set_column, valid_column, tag_column, data_column, cache_size);
         cout << endl;
@@ -232,55 +217,34 @@ void set_associative(int cache_size, int address_bits, int way){
             cout << "Assigned cache block (where found or placed) : " << input_bit << " mod " << cache_size << " = " << set_bits << endl << endl;
         }
     }
-    // calculate hit rate
-    double hit_rate = (count > 0) ? (hit * 100.0) / count : 0; // Fixed: handle divide by zero
-    cout << endl << "Hit rate : " << hit_rate << "%" << endl;
+    // caculate hit rate
+    double hit_rate =( hit*1.) / (count*1.);
+    cout << endl << "Hit rate : " << hit_rate * 100 << "%" << endl;
+
 }
 
 void start_set_associative(){
     cout << "===== N-Way Set Associative =====" << endl << endl;
-    
+    // choose way associative ()
     int way;
-    int cache_size;
-    int address_bits;
-    
-    // Fixed: Added proper validation
-    way_input:
-    cout << "Choose your way of set associative (1 or more): ";
+    cout << "Choose your way of set associative : ";
     cin >> way;
-    
-    if (cin.fail() || way < 1) {
-        cin.clear();
-        cin.ignore(10000, '\n');
-        cout << "Invalid input! Way must be at least 1." << endl << endl;
-        goto way_input;
-    }
 
     // input size of cache (16 bit is in range 0 - 65535)
-    cache_input:
+    try_again:
     cout << "Input cache block size (" << way << " - 65535) : ";
+    int cache_size;
     cin >> cache_size;
-    
-    if (cin.fail() || cache_size < way || cache_size > 65535) {
-        cin.clear();
-        cin.ignore(10000, '\n');
-        cout << "Your input is invalid try again!!" << endl << endl;
-        goto cache_input;
-    }
 
     // input bits of address (range log2(cache_size) - 16)
-    int min_address_bits = ceil(log2(cache_size / way));
-    if (min_address_bits < 1) min_address_bits = 1; // Fixed: ensure minimum of 1 bit
-    
-    address_input:
-    cout << "Input bit of address (" << min_address_bits << " - 16) : ";
+    int cache_bits = ceil(log(cache_size) / log(2));
+    cout << "Input bit of address (" << cache_bits << " - 16) : ";
+    int address_bits;
     cin >> address_bits;
-    
-    if (cin.fail() || address_bits < min_address_bits || address_bits > 16) {
-        cin.clear();
-        cin.ignore(10000, '\n');
+
+    if (cache_size > 65535 || cache_bits > 16 || cache_bits < ceil(log(cache_size) / log(2)) || way < 1 || address_bits > 16 || cache_size > 65535){
         cout << "Your input is invalid try again!!" << endl << endl;
-        goto address_input;
+        goto try_again;
     }
 
     set_associative(cache_size, address_bits, way);
@@ -288,38 +252,24 @@ void start_set_associative(){
 
 void start_fully_associative(){
     cout << "===== Fully Way Associative =====" << endl << endl;
-    
+    // input size of cache (16 bit is in range 0 - 65535)
+    try_again:
+    cout << "Input cache block size (0 - 65535) : ";
     int cache_size;
-    int address_bits;
-    
-    // input size of cache
-    cache_input:
-    cout << "Input cache block size (1 - 65535) : "; // Fixed: minimum 1 instead of 0
     cin >> cache_size;
-    
-    if (cin.fail() || cache_size < 1 || cache_size > 65535) {
-        cin.clear();
-        cin.ignore(10000, '\n');
-        cout << "Your input is invalid try again!!" << endl << endl;
-        goto cache_input;
-    }
 
-    // input bits of address
-    int min_address_bits = 1; // Fixed: ensure minimum of 1 bit
-    
-    address_input:
-    cout << "Input bit of address (" << min_address_bits << " - 16) : ";
+    // input bits of address (range log2(cache_size) - 16)
+    int cache_bits = ceil(log(cache_size) / log(2));
+    cout << "Input bit of address (" << cache_bits << " - 16) : ";
+    int address_bits;
     cin >> address_bits;
-    
-    if (cin.fail() || address_bits < min_address_bits || address_bits > 16) {
-        cin.clear();
-        cin.ignore(10000, '\n');
+
+    int way = cache_size;
+
+    if (cache_size > 65535 || cache_bits > 16 || cache_bits < ceil(log(cache_size) / log(2))){
         cout << "Your input is invalid try again!!" << endl << endl;
-        goto address_input;
+        goto try_again;
     }
 
-    // In fully associative cache, way equals cache_size
-    int way = cache_size;
-    
     set_associative(cache_size, address_bits, way);
 }
