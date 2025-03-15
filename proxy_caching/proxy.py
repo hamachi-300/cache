@@ -1,17 +1,19 @@
 from flask import Flask, request, jsonify # type: ignore
 from LRU import LRU
+from LFU import LFU
 import requests # type: ignore
 
 app = Flask(__name__)
 
 # cache memory for store web content
-cache = LRU(5)
+cache = LFU(5)
 
 # create route for proxy
 @app.route('/proxy', methods=['GET'])
 def proxy():
     # get url from server
     url = request.args.get("url")
+    print(cache.getKeys())
     
     # check url is in cache memory
     cached_data = cache.get(url)
