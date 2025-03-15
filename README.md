@@ -1,11 +1,13 @@
 # cache
 cache memory simulation. computer architecture project
 
-# content function
+# content of mapping_simulation
 - Directed Mapping Technique
 - N Way Set Associative Technique
 - Fully Set Associative Technique
 - LRU (Least Recently Used) in set associative
+
+# content of proxy_caching
 
 # todo
 - Memory Simulation: You can simulate larger memory spaces (e.g., simulate the impact of cache on a program running in memory, including multithreaded environments).
