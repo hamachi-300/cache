@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify # type: ignore
 from LRU_Redis import LRU
 from LFU_Redis import LFU
 import requests # type: ignore
+import atexit
 
 app = Flask(__name__)
 
@@ -45,6 +46,13 @@ def proxy():
         except requests.exceptions.RequestException as e:
             return jsonify({"error" : str(e)}) 
     
+# clean chace when server stops
+def on_shutdown():
+    cache.clear()
+
+# register on_shutdown function
+atexit.register(on_shutdown)
+
 # start proxy
 if __name__ == "__main__":
     app.run(debug=False)

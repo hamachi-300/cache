@@ -1,62 +1,100 @@
-import time
 import redis
-
-# LRU (Least Recently used) : it will move key which used to front and when data exceed it will terminate last item and add new
+import time
+import json
 
 class LRU:
-    # contructor function set size of cache
-    def __init__(self, size: int, ttl: int):
-        # create connection with redis and set auto decode to UTF-8
-        self.cache = redis.StrictRedis(host="localhost", port=6379, db=0, decode_responses=True)
+    def __init__(self, size: int, ttl: int, host='localhost', port=6379, db=0):
+        # connection to redis server
+        self.redis = redis.Redis(host=host, port=port, db=db)
         self.size = size
         self.ttl = ttl
-
-    # check expire item
-    def is_expired(self, key):
-        # check ttl mechanism in redis
-        ttl = self.cache.ttl(key)
-        return ttl <= 0
+        # redis list for store cache and list for store recently order
+        self.cache_key = "lru_cache"
+        self.order_key = "lru_order"
     
-    # get function for get data from cache by key
     def get(self, key: str):
-        # check expired data
-        if self.is_expired(key):
-            self.cache.delete(key)
+        
+        # check if key exists in cache
+        if not self.redis.hexists(self.cache_key, key):
             return None
         
-        # get key if not exist redis will return None
-        data = self.cache.get(key)
-
-        # if got data extend ttl
-        if data:
-            self.cache.setex(key, self.ttl, data)
-            # move to front
-            self.cache.lrem("lru_order", 0, key) 
-            self.cache.lpush("lru_order", key)
+        # get the cached value
+        value = self.redis.hget(self.cache_key, key)
+        item = json.loads(value)
         
-        return data
+        # check if item is expired
+        if time.time() > item['expire_time']:
+            # remove expired item
+            self.redis.hdel(self.cache_key, key)
+            self.redis.lrem(self.order_key, 1, key)
+            return None
+        
+        # update the LRU order (move to front)
+        self.redis.lrem(self.order_key, 1, key) # remove 
+        self.redis.lpush(self.order_key, key) # push left
+        
+        return item['data']
     
     def getKeys(self):
-        return self.cache.lrange("lru_order", 0, -1)
-
-    # put function for put data to cache
+        # get keys in LRU order
+        return self.redis.lrange(self.order_key, 0, -1)
+    
     def put(self, key: str, data: str):
-
-        # check expired data
-        for k in self.cache.keys("*"):
-            if self.is_expired(k):
-                self.cache.delete(k)
-                self.cache.lrem("lru_order", 0, k)
-
-        # move to most recent used zone if it in cache
-        if key in self.cache:
-            self.cache.move_to_end(key, last=False)
-
-        # put data (if not key it will automate insert)
-        expire_time = time.time() + self.ttl
-        self.cache[key] = (data, expire_time)
-        self.cache.move_to_end(key, last=False)
+        # check if key already exists
+        if self.redis.hexists(self.cache_key, key):
+            # update LRU order
+            self.redis.lrem(self.order_key, 1, key)
         
-        # if cache out of size remove last item (least recently used item)
-        if (len(self.cache) > self.size):
-            self.cache.popitem(last=True)
+        # calculate expiration time
+        expire_time = time.time() + self.ttl
+        
+        # store the data with expiration time
+        item = {
+            'data': data,
+            'expire_time': expire_time
+        }
+        self.redis.hset(self.cache_key, key, json.dumps(item))
+        self.redis.lpush(self.order_key, key)
+        
+        # Remove expired items
+        self.remove_expired_items()
+        
+        # If cache exceeds size, remove least recently used items
+        self.enforce_size_limit()
+    
+    # remove all expired items from the cache
+    def remove_expired_items(self):
+        current_time = time.time()
+        
+        # get all keys and their values
+        all_items = self.redis.hgetall(self.cache_key)
+        
+        # check each item for expiration
+        for key, value in all_items.items():
+            item = json.loads(value)
+            if current_time > item['expire_time']:
+                # delete from cache list and order list
+                self.redis.hdel(self.cache_key, key)
+                self.redis.lrem(self.order_key, 1, key)
+    
+    # check size is exceed
+    def enforce_size_limit(self):
+
+        # get current cache size
+        cache_size = self.redis.hlen(self.cache_key)
+        
+        # remove least recently used items if cache exceeds size
+        if cache_size > self.size:
+            # get items to remove (from the end of the list)
+            items_to_remove = cache_size - self.size
+            for _ in range(items_to_remove):
+                # get the least recently used key (right zone)
+                oldest_key = self.redis.rpop(self.order_key)
+                if oldest_key:
+                    # delete from cache
+                    self.redis.hdel(self.cache_key, oldest_key)
+    
+    def clear(self):
+        # clear entire cache
+        self.redis.delete(self.cache_key)
+        self.redis.delete(self.order_key)

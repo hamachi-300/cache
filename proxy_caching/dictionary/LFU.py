@@ -47,10 +47,10 @@ class LFU:
             # get LRU keys
             least_freq = min(self.freq.values(), default=None)
             keys_to_remove = [k for k, v in self.freq.items() if v == least_freq]
-            # delete all items that have LFU
-            for k in keys_to_remove:
-                del self.cache[k]
-                del self.freq[k]
+            # delete first item that is LFU
+            del self.cache[keys_to_remove[0]]
+            del self.freq[keys_to_remove[0]]
+            
         # insert new key and data
         expire_time = time.time() + self.ttl
         self.cache[key] = (data, expire_time)
