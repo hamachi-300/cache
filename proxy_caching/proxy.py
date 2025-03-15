@@ -12,17 +12,19 @@ algorithm = input("Enter caching algorithm      "
                 "\n2) LFU (Least Frequency Used)"
                 "\nEnter algorithm number : ")
 size = int(input("\nEnter cache size : "))
+expire_ttl = int(input("Enter Expire Time (second) : "))
 
 if (algorithm == "1"):
-    cache = LRU(size)
+    cache = LRU(size, expire_ttl)
 else: 
-    cache = LFU(size)
+    cache = LFU(size, expire_ttl)
 
 # create route for proxy
 @app.route('/proxy', methods=['GET'])
 def proxy():
     # get url from server
     url = request.args.get("url")
+    print(cache.getKeys())
     
     # check url is in cache memory
     cached_data = cache.get(url)
@@ -45,4 +47,4 @@ def proxy():
     
 # start proxy
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False)
