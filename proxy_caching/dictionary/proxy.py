@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify # type: ignore
 from LRU import LRU
 from LFU import LFU
-import requests # type: ignore
+import requests
 
 app = Flask(__name__)
 
