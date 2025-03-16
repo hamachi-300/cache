@@ -10,13 +10,11 @@ cache memory simulation. computer architecture project
 # contents of proxy_caching
   - Proxy Caching : it will store recently or frequency used data make you device faster fetch data from web server
   - Caching Algorithms (LRU, LFU) implementation
-  - TTL (Time To Live)
-  - Redis in-memory data structure store
+  - TTL (Time To Live) : cache expiration based on time-to-live (TTL)
+  - Redis in-memory data structure store : istributed cache using Redis
 
 
 # Optional Enhancements
-- Cache Expiration: Implement cache expiration based on time-to-live (TTL) for cached entries. # 
-- Distributed Cache: Implement a distributed cache using Redis for scalability. #
 - Cache Visualization: Build a dashboard or use logging to visualize cache hits, misses, and the status of cached content. #
 - Testing Load: Use tools like Apache JMeter or Locust to simulate multiple concurrent requests and analyze performance.
 - Authentication and Security: Add basic authentication to the proxy server to restrict access. #
