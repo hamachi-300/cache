@@ -174,6 +174,8 @@ def get_cache_items():
                 expires_in = int(expire_time - now)
                 if expires_in < 0:
                     expires_in = "Expired"
+                    # update cache expired
+                    cache.get(key)
                 else:
                     expires_in = f"{expires_in} sec"
                 

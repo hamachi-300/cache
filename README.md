@@ -12,9 +12,4 @@ cache memory simulation. computer architecture project
   - Caching Algorithms (LRU, LFU) implementation
   - TTL (Time To Live) : cache expiration based on time-to-live (TTL)
   - Redis in-memory data structure store : istributed cache using Redis
-
-
-# Optional Enhancements
-- Cache Visualization: Build a dashboard or use logging to visualize cache hits, misses, and the status of cached content. #
-- Testing Load: Use tools like Apache JMeter or Locust to simulate multiple concurrent requests and analyze performance.
-- Authentication and Security: Add basic authentication to the proxy server to restrict access. #
+  - Cache Status Dashboard

@@ -172,7 +172,12 @@ def get_cache_items():
                 value = cache.redis.hget(cache.cache_key, key)
             else:  # LFU
                 value = cache.redis.hget(cache.cache_key, key)
-                
+            
+            # convert keys to utf-8 if it is byte
+
+            if isinstance(key, bytes):
+                key = key.decode('utf-8')
+   
             if value:
                 item = json.loads(value)
                 # if not data return ''
@@ -184,6 +189,8 @@ def get_cache_items():
                 expires_in = int(expire_time - now)
                 if expires_in < 0:
                     expires_in = "Expired"
+                    # update cache expired
+                    cache.get(key)
                 else:
                     expires_in = f"{expires_in} sec"
                 
